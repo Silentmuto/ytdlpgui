@@ -16,10 +16,14 @@ class OptionFrame : public wxFrame
 	wxCheckListBox* FileArg;
 	wxCheckListBox* FileArg2;
 	  wxButton* check;
+	  std::string args;
 	DECLARE_EVENT_TABLE();
 public:
 	OptionFrame(wxWindow* parent = NULL, int ID=330192, wxString name="Options");
 	void OnButton(wxCommandEvent& event);
+	void OnChoice(wxCommandEvent& event);
+	void OnChoice2(wxCommandEvent& event);
+	std::string GetChoices();
 };
 class MainFrame : public wxFrame
 {
@@ -31,6 +35,7 @@ class MainFrame : public wxFrame
 	wxDirPickerCtrl* DlFolder;
 	wxChoice* ResSelect;
 	OptionFrame* OptionWindow;
+	int AdditionalOptions = 0;
 	DECLARE_EVENT_TABLE()
 public:
 	
