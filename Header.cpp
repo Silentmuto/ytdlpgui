@@ -22,8 +22,6 @@ OptionFrame::OptionFrame(wxWindow* parent, int ID, wxString name) : wxFrame(pare
     choices2.Add("Release Year");
     choices2.Add("Channel Name");
     choices2.Add("Duration"); // not in seconds
-    choices2.Add("Age Limit");
-    choices2.Add("Tags");
     
     Center();
   //  check = new wxButton(this, 169, "Check", { 0,150 });
@@ -72,7 +70,29 @@ void OptionFrame::OnChoice(wxCommandEvent& event)
 
 void OptionFrame::OnChoice2(wxCommandEvent& event)
 {
+    switch (event.GetInt())
+    {
+    case 0:
+        args = args + "%(release_timestamp)s ";
+        break;
+    case 1:
+        args = args + "%(release_date)s ";
+        break;
+    case 2:
+        args = args + "%(release_year)s ";
+        break;
+    case 3:
+        args = args + "%(channel)s ";
+        break;
+    case 4:
+        args = args + "%(duration_string)s ";
+        break;
+    case 5:
+        args = args + "%(age_limit)s ";
+        break;
+    }
 }
+
 
 std::string OptionFrame::GetChoices()
 {
@@ -252,20 +272,23 @@ std::stringstream MainFrame::CommandBuilder()
         res = 144;
         break;
     }
-   
-    cmd << "--embed-thumbnail" << " " << "--embed-subs" << " " << "-S " << '"' << "res" << res << '"' << " " << "--embed-metadata" << " ";
+    if (FormatSelection->GetSelection() < 4)
+        cmd << "--embed-subs " << "-S "<< '"' << "res" << res << '"'<<" ";
+    cmd << "--embed-thumbnail " << "--embed-metadata" << " "<<" ";
     if (!AdditionalOptions)
     {
+        if (AdditionalArgs->IsChecked(3))
+            cmd << "-o " << '"' << "%(chapter)s.%(ext)s" << '"' << " ";
         cmd<< "-o " << '"' << "%(title)s.%(ext)s" << '"';
     }
     else
     {
-        cmd << "-o " << '"' << OptionWindow->GetChoices() << '"';
+        cmd << " -o " << '"' << OptionWindow->GetChoices() << '"';
     }
-    if (AdditionalArgs->IsChecked(0)) cmd << "-k" << " ";
-    if (AdditionalArgs->IsChecked(1)) cmd << "--write-subs" << " ";
-    if (AdditionalArgs->IsChecked(2)) cmd << "--write-thumbnail" << " ";
-    if (AdditionalArgs->IsChecked(3)) cmd << "--split-chapters" << " ";
+    if (AdditionalArgs->IsChecked(0)) cmd <<" "<<"- k" << " ";
+    if (AdditionalArgs->IsChecked(1)) cmd <<" "<<"--write-subs" << " ";
+    if (AdditionalArgs->IsChecked(2)) cmd <<" "<<"--write-thumbnail" << " ";
+    if (AdditionalArgs->IsChecked(3)) cmd <<" "<<  "--split-chapters" << " ";
     if (AdditionalArgs->IsChecked(4)) cmd << "--sponsorblock-mark all" << " ";
     std::fstream log;
     std::string filename;
