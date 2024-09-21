@@ -2,11 +2,10 @@
 #include <fstream>
 #include <wx/notebook.h>
 #include <wx/propdlg.h>
-#include <wx/panel.h>
 #include <wx/bookctrl.h>
-#include <wx/mediactrl.h>
 #include <wx/string.h>
-OptionFrame::OptionFrame(wxWindow* parent, int ID, wxString name) : wxFrame(parent, ID, name,{0,0},{600,210})
+#include <wx/textfile.h>
+OptionFrame::OptionFrame(wxWindow* parent, int ID, wxString name) : wxFrame(parent, ID, name,{0,0},{300,150})
 {
     wxArrayString choices;
     wxArrayString choices2;
@@ -15,9 +14,7 @@ OptionFrame::OptionFrame(wxWindow* parent, int ID, wxString name) : wxFrame(pare
     choices.Add("Fulltitle");
     choices.Add("Alternative Title");
     choices.Add("Uploader");
-    choices.Add("Upload Timestamp");
-    choices.Add("Upload Date");
-    choices2.Add("Release TimeStamp");
+    choices2.Add("Upload Date");
     choices2.Add("Release Date");
     choices2.Add("Release Year");
     choices2.Add("Channel Name");
@@ -25,8 +22,8 @@ OptionFrame::OptionFrame(wxWindow* parent, int ID, wxString name) : wxFrame(pare
     
     Center();
   //  check = new wxButton(this, 169, "Check", { 0,150 });
-    FileArg = new wxCheckListBox(this, FileArgID, { 0,20 }, { 300,130 }, choices);
-    FileArg2 = new wxCheckListBox(this, FileArg2ID, { 299,20 }, { 300,130 }, choices2);
+    FileArg = new wxCheckListBox(this, FileArgID, { 0,20 }, { 150,90 }, choices);
+    FileArg2 = new wxCheckListBox(this, FileArg2ID, { 150,20 }, { 150,90 }, choices2);
     
     wxStaticText* Exp = new wxStaticText(this, 992, "The order in which u select matters", { 0,0 });
    
@@ -58,12 +55,6 @@ void OptionFrame::OnChoice(wxCommandEvent& event)
     case 4:
         args = args + "%(uploader)s ";
         break;
-    case 5:
-        args = args + "%(timestamp)s ";
-        break;
-    case 6:
-        args = args + "%(upload_date)s ";
-        break;
     }
 
 }
@@ -73,7 +64,7 @@ void OptionFrame::OnChoice2(wxCommandEvent& event)
     switch (event.GetInt())
     {
     case 0:
-        args = args + "%(release_timestamp)s ";
+        args = args + "%(upload_date)s ";
         break;
     case 1:
         args = args + "%(release_date)s ";
@@ -87,9 +78,6 @@ void OptionFrame::OnChoice2(wxCommandEvent& event)
     case 4:
         args = args + "%(duration_string)s ";
         break;
-    case 5:
-        args = args + "%(age_limit)s ";
-        break;
     }
 }
 
@@ -99,7 +87,14 @@ std::string OptionFrame::GetChoices()
     return args;
 }
 
-MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxT("Youtube-dlp GUI"), { 1,700 }, { 700,450 })
+OptionFrame::~OptionFrame()
+{
+    std::fstream argfile;
+    argfile.open("args", std::fstream::out);
+        argfile << args;
+}
+
+MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxT("Youtube-dlp GUI"), { 1,700 }, { 700,700 })
 {   //Frame Init
     wxArrayString choices;
     wxArrayString args;
@@ -133,6 +128,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxT("Youtube-dlp GUI"), { 1,700
     wxMenu* HelpMenu = new wxMenu;
     wxMenu* OptionMenu = new wxMenu;
     OptionWindow = new OptionFrame(this, 330192, wxT("OptionWindow"));
+
     OptionMenu->Append(FileOptionID, wxT("File Formatting"), wxT("Select filename formating options"));
     MainMenu->Append(wxID_EXIT, wxT("Exit"), wxT(":("));
     HelpMenu->Append(wxID_ABOUT, wxT("About"), wxT("womp womp "));
@@ -145,7 +141,11 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxT("Youtube-dlp GUI"), { 1,700
     SetMenuBar(MenuBar); }
     //UI stuff
     LinkBox = new wxTextCtrl(this, LinkBoxID, " ", { 0,0 }, { 400,315 },wxTE_PROCESS_ENTER | wxTE_MULTILINE | wxHSCROLL);
-  //  OutputBox = new wxTextCtrl(this, OutputBoxID, " ", { 0,300 }, { 400,315 }, wxTE_READONLY);
+    OutputBox = new wxTextCtrl(this, OutputBoxID, " ", { 0,352  }, { 700,260 }, wxTE_READONLY | wxTE_MULTILINE | wxHSCROLL);
+    std::fstream argfile;
+    argfile.open("args",std::fstream::out);
+    argfile << " %(title)s.%(ext)s";
+    argfile.close();
     {
         wxStaticText* Dl = new wxStaticText(this, 149, "Click Browse to select the download directory", { 0,315 });
         DlFolder = new wxDirPickerCtrl(this, 149, " ", "Browse", { 0,330 }, { 280,20 });
@@ -165,6 +165,8 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxT("Youtube-dlp GUI"), { 1,700
         ResSelect->SetSelection(0);
         AdditionalArgs = new wxCheckListBox(this, AdditionalArgsID, { 400,35 }, { 280,100 }, args);
     }
+    refresh.SetOwner(this, TimerID);
+    
     
 
 }
@@ -181,8 +183,15 @@ bool program::OnInit()
 {
     MainFrame* MainWindow = new MainFrame();
     MainWindow->Show();
+
     return true;
 }
+
+void MainFrame::OnTimer(wxTimerEvent& event)
+{
+   
+}  
+
 void MainFrame::OnSize(wxSizeEvent &event)
 {
 
@@ -190,18 +199,30 @@ void MainFrame::OnSize(wxSizeEvent &event)
 }
 void MainFrame::OnButton(wxCommandEvent &event)
 {
+  
     std::stringstream cmd;
     SetStatusText("Downloading");
     cmd = CommandBuilder();
+    logfile.Open("out.o");
+ 
     if (!system(cmd.str().c_str()))
     {
 
         wxMessageBox("Program Ran Succesfully", "Good stuff");
+
     }
     else
     {
         wxMessageBox("failed to convert ", "Arrggh");
     }
+    int cnt = logfile.GetLineCount();
+
+    for (int i = 0; i < logfile.GetLineCount(); i++)
+    {
+        OutputBox->AppendText(logfile.GetLine(i));
+        OutputBox->AppendText("\n");
+    }
+   
     SetStatusText("ZZZ");
 }
 void MainFrame::OnChoice(wxCommandEvent& event)
@@ -214,6 +235,7 @@ void MainFrame::OnChoice(wxCommandEvent& event)
     {
         FormatSelection->SetSelection(5);
     }
+   
 }
 void MainFrame::OnOption(wxCommandEvent& event)
 {
@@ -228,7 +250,7 @@ void MainFrame::OnOption(wxCommandEvent& event)
 std::stringstream MainFrame::CommandBuilder()
 {
     std::stringstream cmd;
-    cmd << "yt-dlp" << " " << "-P" << " " << '"'<< DlFolder->GetPath()<<'"' << " ";
+    cmd << "yt-dlp > out.o" << " " << "-P" << " " << '"'<< DlFolder->GetPath()<<'"' << " ";
     for (int i = 0; i < LinkBox->GetNumberOfLines(); i++)
         cmd <<'"'<<LinkBox->GetLineText(i) <<'"' << " ";
     switch (FormatSelection->GetSelection())
@@ -275,17 +297,12 @@ std::stringstream MainFrame::CommandBuilder()
     if (FormatSelection->GetSelection() < 4)
         cmd << "--embed-subs " << "-S "<< '"' << "res" << res << '"'<<" ";
     cmd << "--embed-thumbnail " << "--embed-metadata" << " "<<" ";
-    if (!AdditionalOptions)
-    {
-        if (AdditionalArgs->IsChecked(3))
-            cmd << "-o " << '"' << "%(chapter)s.%(ext)s" << '"' << " ";
-        cmd<< "-o " << '"' << "%(title)s.%(ext)s" << '"';
-    }
-    else
-    {
-        cmd << " -o " << '"' << OptionWindow->GetChoices() << '"';
-    }
-    if (AdditionalArgs->IsChecked(0)) cmd <<" "<<"- k" << " ";
+    argfile.open("args", std::fstream::in);
+    char args[100];
+    argfile.getline(args, 100);
+    wxString fin(args);
+    cmd << "-o " <<'"'<<fin<<'"'<<" ";
+    if (AdditionalArgs->IsChecked(0)) cmd <<" "<<"-k" << " ";
     if (AdditionalArgs->IsChecked(1)) cmd <<" "<<"--write-subs" << " ";
     if (AdditionalArgs->IsChecked(2)) cmd <<" "<<"--write-thumbnail" << " ";
     if (AdditionalArgs->IsChecked(3)) cmd <<" "<<  "--split-chapters" << " ";
@@ -305,6 +322,7 @@ EVT_CHECKLISTBOX(FileArgID,OptionFrame::OnChoice)
 EVT_CHECKLISTBOX(FileArg2ID, OptionFrame::OnChoice2)
 END_EVENT_TABLE()
 BEGIN_EVENT_TABLE(MainFrame, wxFrame)
+EVT_TIMER(TimerID, MainFrame::OnTimer)
 EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 EVT_MENU(FileOptionID,MainFrame::OnOption)
