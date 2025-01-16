@@ -5,6 +5,7 @@
 #include <wx/bookctrl.h>
 #include <wx/string.h>
 #include <wx/textfile.h>
+#include <thread>
 OptionFrame::OptionFrame(wxWindow* parent, int ID, wxString name) : wxFrame(parent, ID, name,{0,0},{300,150})
 {
     wxArrayString choices;
@@ -190,7 +191,20 @@ bool program::OnInit()
 void MainFrame::OnTimer(wxTimerEvent& event)
 {
    
-}  
+}
+
+void RunCommand(std::string command)
+{
+    if (!system(command.c_str()))
+    {
+        wxMessageBox("Program Ran Succesfully", "Succes");
+    }
+    else
+    {
+        wxMessageBox("The program encountered an error download one or more songs,please check for any missing songs", "Error");
+    }
+   
+}
 
 void MainFrame::OnSize(wxSizeEvent &event)
 {
@@ -199,23 +213,13 @@ void MainFrame::OnSize(wxSizeEvent &event)
 }
 void MainFrame::OnButton(wxCommandEvent &event)
 {
-  
     std::stringstream cmd;
     SetStatusText("Downloading");
     cmd = CommandBuilder();
-    logfile.Open("out.o");
- 
-    if (!system(cmd.str().c_str()))
-    {
 
-        wxMessageBox("Program Ran Succesfully", "Succesfull download");
-
-    }
-    else
-    {
-        wxMessageBox("The program encountered an error downloading one or some songs, please check for any missing songs and retry again ", "Error");
-    }
-    int cnt = logfile.GetLineCount();
+    std::thread ytdlp(RunCommand, cmd.str());
+    ytdlp.detach();
+    SetStatusText("Downloading");
 
     for (int i = 0; i < logfile.GetLineCount(); i++)
     {

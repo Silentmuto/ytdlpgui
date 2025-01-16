@@ -18,6 +18,7 @@ public:
 	
 
 };
+void RunCommand(std::string command);
 class OptionFrame : public wxFrame
 {
 	wxCheckListBox* FileArg;
@@ -58,6 +59,7 @@ public:
 	void OnChoice(wxCommandEvent& event);
 	void OnOption(wxCommandEvent& event);
 	void OnTimer(wxTimerEvent& event);
+
 	std::stringstream CommandBuilder();
 };
 class HTUFrame : public wxFrame
