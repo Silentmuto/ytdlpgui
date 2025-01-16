@@ -1,3 +1,4 @@
+
 #pragma once
 #include <wx/wx.h>
 #include <wx/filepicker.h>
@@ -59,7 +60,10 @@ public:
 	void OnTimer(wxTimerEvent& event);
 	std::stringstream CommandBuilder();
 };
+class HTUFrame : public wxFrame
+{
 
+};
 enum ID {
 	TestButton = 0,
 	LinkBoxID,
