@@ -9,6 +9,8 @@
 #include <fstream>
 #include <wx/textfile.h>
 #include <wx/timer.h>
+#include "IDs.h"
+#include "SecondaryFrames.h"
 class program : public wxApp
 {
 public:
@@ -19,21 +21,7 @@ public:
 
 };
 void RunCommand(std::string command);
-class OptionFrame : public wxFrame
-{
-	wxCheckListBox* FileArg;
-	wxCheckListBox* FileArg2;
-	  wxButton* check;
-	  wxString args;
-	DECLARE_EVENT_TABLE();
-public:
-	OptionFrame(wxWindow* parent = NULL, int ID=330192, wxString name="Options");
-	void OnButton(wxCommandEvent& event);
-	void OnChoice(wxCommandEvent& event);
-	void OnChoice2(wxCommandEvent& event);
-	std::string GetChoices();
-	~OptionFrame();
-};
+
 class MainFrame : public wxFrame
 {
 	wxTextCtrl* LinkBox;
@@ -48,6 +36,7 @@ class MainFrame : public wxFrame
 	wxTextFile logfile;
 	wxTimer refresh;
 	int AdditionalOptions = 0;
+	PlaylistFrame* PlaylistOptions;
 	DECLARE_EVENT_TABLE()
 public:
 	
@@ -59,6 +48,7 @@ public:
 	void OnChoice(wxCommandEvent& event);
 	void OnOption(wxCommandEvent& event);
 	void OnTimer(wxTimerEvent& event);
+	void OnUpdate(wxCommandEvent& event);
 
 	std::stringstream CommandBuilder();
 };
@@ -66,17 +56,4 @@ class HTUFrame : public wxFrame
 {
 
 };
-enum ID {
-	TestButton = 0,
-	LinkBoxID,
-	DownloadButtonID,
-	OutputBoxID,
-	FormatSelectionID,
-	AdditionalArgsID,
-	ResSelectID,
-	FileOptionID,
-	OptionWindowID,
-	FileArgID,
-	FileArg2ID,
-	TimerID
-};	
+
